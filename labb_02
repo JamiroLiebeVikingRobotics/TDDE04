@@ -41,19 +41,11 @@ while len(flowerList) < 201:
     
     #The first flower is always placed and never removed
     if hit and materialInd == 0 and len(flowerList) == 0:
-
-            up = Vector((0.0, 0.0, 1.0))
-            rot = up.rotation_difference(norm).to_euler()
-            flower.rotation_euler = rot
             help.copy_obj(flower, "add", loc.copy(), norm)
             flowerList = list(bpy.data.collections["add"].objects)
             locations.append(loc)
 
     elif hit and materialInd == 0:
-        
-            up = Vector((0.0, 0.0, 1.0))
-            rot = up.rotation_difference(norm).to_euler()
-            flower.rotation_euler = rot
             help.copy_obj(flower, "add", loc.copy(), norm)
             flowerList = list(bpy.data.collections["add"].objects)
             #Compares each flower location and removes the latest if it is to close
