@@ -1,0 +1,39 @@
+import bpy
+from mathutils import Vector
+from random import uniform 
+
+art = bpy.data.objects["art"]
+lights = list(bpy.data.collections["lights"].objects)
+#Dis = distance that light can spawn from object art
+dis = 2
+artLoc = art.location
+newLights = []
+
+def randomVec():
+    r = Vector((uniform(artLoc[0]-dis,artLoc[0]+dis), uniform(artLoc[1]-dis,artLoc[1]+dis), uniform(0,12)))
+    while r.magnitude == 0.0:
+        r = Vector((uniform(artLoc[0]-dis,artLoc[0]+dis), uniform(artLoc[1]-dis,artLoc[1]+dis), uniform(0,12)))
+    return r
+
+def is_inside(obj, p):
+    result, point, normal, face_id = obj.closest_point_on_mesh(p)
+    local_p = obj.matrix_world.inverted()@p
+    p2 = point-local_p
+    v = p2.dot(normal)
+    return v > 0.0
+
+#Yo yo yo, min kod är subjektivt enligt mig rätt men funkar fel inte ok..
+#is inside funktionen är broken(behöver läsa på mig ett bättre sätt att göra det)
+while len(newLights) < 3:
+    for i in lights:       
+            newLoc = randomVec()  
+            if is_inside(art, newLoc) == False:
+                i.location = newLoc
+                print(is_inside(art, i.location))
+                lights.remove(i)
+                newLights.append(i)
+                
+print(lights)
+for i in newLights:
+    print(is_inside(art, i.location))
+    
