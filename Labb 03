@@ -20,7 +20,7 @@ def is_inside(obj, p):
     local_p = obj.matrix_world.inverted()@p
     p2 = point-local_p
     v = p2.dot(normal)
-    return v > 0.0
+    return normal.magnitude != 0.0 and v > 0.0
 
 #Yo yo yo, min kod är subjektivt enligt mig rätt men funkar fel inte ok..
 #is inside funktionen är broken(behöver läsa på mig ett bättre sätt att göra det)
