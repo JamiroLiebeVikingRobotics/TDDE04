@@ -1,0 +1,87 @@
+import bpy
+from mathutils import Vector
+from random import uniform 
+
+art = bpy.data.objects["art"]
+lights = list(bpy.data.collections["lights"].objects)
+#Dis = distance that light can spawn from object art
+dis = 15
+artLoc = art.location
+newLights = []
+newLocs = []
+
+def randomVec():
+    r = Vector((uniform(artLoc[0]-dis,artLoc[0]+dis), uniform(artLoc[1]-dis,artLoc[1]+dis), uniform(0,12)))
+    while r.magnitude == 0.0:
+        r = Vector((uniform(artLoc[0]-dis,artLoc[0]+dis), uniform(artLoc[1]-dis,artLoc[1]+dis), uniform(0,12)))
+    return r
+
+def is_inside(obj, p):
+    result, point, normal, face_id = obj.closest_point_on_mesh(p)
+    local_p = obj.matrix_world.inverted()@p
+    p2 = point-local_p
+    v = p2.dot(normal)
+    return normal.magnitude != 0.0 and v > 0.0
+
+def make2d(vec):
+    v = Vector((vec[0],vec[1], 0))
+    v = v.magnitude
+    return v
+
+def reflect(vec):
+    v = Vector((-vec[0],-vec[1],vec[2]))
+    return v
+
+"""
+vector = randomVec()
+
+print(vector)
+
+print(make2d(vector))
+"""
+
+
+while len(newLights) < 2:
+    for i in lights:
+        newLoc = randomVec()
+        
+        if is_inside(art, newLoc) == False:
+            #Sätt ut första
+            if len(newLights) == 0:
+                i.location = newLoc
+                lights.remove(i)
+                newLights.append(i)                
+                
+            elif len(newLights) == 1:
+                print(newLights[0].location)
+                i.location = reflect(newLights[0].location)
+                lights.remove(i)
+                newLights.append(i)  
+            elif:
+                i.location = newLoc
+                lights.remove(i)
+                newLights.append(i)                   
+                print("satt ut sista")
+                
+"""                
+        if is_inside(art, newLoc) == False and len(newLights) < 2:
+            i.location = newLoc
+            lights.remove(i)
+            newLights.append(i)
+        elif is_inside(art, newLoc) == False and ((make2d(newLights[0].location)+make2d(newLights[1].location) - make2d(newLoc)) < 5:
+            i.location = newLoc
+            lights.remove(i)
+            newLights.append(i)           
+    
+        
+
+            
+print(lights)
+for i in newLights:
+     print(is_inside(art, i.location))
+     
+     
+print((newLights[0].location+newLights[1].location - newLoc).magnitude)
+
+"""
+
