@@ -1,0 +1,100 @@
+import bpy
+from mathutils import Vector
+from random import uniform 
+
+help = bpy.data.texts["helper"].as_module()
+
+plane = bpy.data.objects["ground"]
+trees = list(bpy.data.collections["Trees"].objects)
+planeLoc = plane.location
+tree = bpy.data.objects["tree"]
+
+pWidth = plane.dimensions.x
+pLength = plane.dimensions.y
+pHeight = plane.dimensions.z
+
+seedArea = 2
+           
+def randomVec():
+    r = Vector((uniform(planeLoc[0]-pWidth/2,planeLoc[0]+pWidth/2), uniform(planeLoc[1]-pLength/2,planeLoc[1]+pLength/2), uniform(pLength,pLength+2)))
+    while r.magnitude == 0.0:
+        r = Vector((uniform(planeLoc[0]-pWidth/2,planeLoc[0]+pWidth/2), uniform(planeLoc[1]-pLength/2,planeLoc[1]+pLength/2), uniform(pLength,pLength+2)))
+    return r
+
+def is_inside(obj, p):
+    result, point, normal, face_id = obj.closest_point_on_mesh(p)
+    local_p = obj.matrix_world.inverted()@p
+    p2 = point-local_p
+    v = p2.dot(normal)
+    return v > 0.0
+
+def set_material(poly, obj, mat_name):
+    for i in range(len(obj.material_slots)):
+        if mat_name == obj.material_slots[i].material.name:
+            poly.material_index = i
+            return True
+    return False
+def cluster(parent):
+    seeds = []
+    spawn = uniform(0, 7)
+    while len(seeds) < spawn:
+        loc = parent.location
+        r = Vector((uniform(loc[0]-seedArea,loc[0]+seedArea), uniform(loc[1]-seedArea,loc[1]+seedArea), 10))
+        print(r)
+        while r.magnitude == 0.0:
+            r = Vector((uniform(loc[0]-seedArea,loc[0]+seedArea), uniform(loc[1]-seedArea,loc[1]+seedArea), 10))
+        seeds.append(r)
+    print(seeds)
+    for s in seeds:
+        dp = bpy.context.view_layer.depsgraph
+        begin = s
+        direction = planeLoc - randomVec()
+           
+        res = bpy.context.scene.ray_cast(dp, begin, direction)
+        hit, loc, norm, poly_ind, obj, mtrx = res
+        #Gets the hit polygons material index, 0 == grass 
+        materialInd = plane.data.polygons[poly_ind].material_index
+        #print(res)
+        if hit and materialInd == 0 and norm.magnitude > 0.9:
+            help.copy_obj(tree, "Trees", loc.copy(), norm)
+            print(norm)
+            trees = list(bpy.data.collections["Trees"].objects)
+            
+            
+
+
+    
+    
+help.reset()
+
+    
+for p in plane.data.polygons:
+    got_material = False
+    if p.center.z < 0:
+        got_material = set_material(p, plane, "water")
+    else:
+        got_material = set_material(p, plane, "mark")
+    if not got_material:
+        print(p.center)
+
+if not len(trees) == 0:
+    help.clean("Trees")
+
+
+
+while len(list(bpy.data.collections["Trees"].objects)) < 2:
+    dp = bpy.context.view_layer.depsgraph
+    begin = randomVec()
+    direction = planeLoc - randomVec()
+        
+    res = bpy.context.scene.ray_cast(dp, begin, direction)
+    hit, loc, norm, poly_ind, obj, mtrx = res
+    #Gets the hit polygons material index, 0 == grass 
+    materialInd = plane.data.polygons[poly_ind].material_index
+    #print(res)
+    if hit and materialInd == 0 and norm.magnitude > 0.9:
+        help.copy_obj(tree, "Trees", loc.copy(), norm)
+        print(norm)
+        trees = list(bpy.data.collections["Trees"].objects)
+        cluster(trees[-1])
+
