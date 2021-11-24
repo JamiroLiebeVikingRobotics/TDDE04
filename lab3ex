@@ -1,3 +1,4 @@
+#jamil103 och rassa564
 import bpy
 from mathutils import Vector
 from random import uniform 
@@ -10,41 +11,47 @@ artLoc = art.location
 newLights = []
 positions = []
 
-
+#Skapar en slumpad vektor i en kub runt art
 def randomVec():
     r = Vector((uniform(artLoc[0]-dis,artLoc[0]+dis), uniform(artLoc[1]-dis,artLoc[1]+dis), uniform(0,12)))
     while r.magnitude == 0.0:
         r = Vector((uniform(artLoc[0]-dis,artLoc[0]+dis), uniform(artLoc[1]-dis,artLoc[1]+dis), uniform(0,12)))
     return r
-
+#Funktion för att kolla om en punkt är inom ett objekt
 def is_inside(obj, p):
     result, point, normal, face_id = obj.closest_point_on_mesh(p)
     local_p = obj.matrix_world.inverted()@p
     p2 = point-local_p
     v = p2.dot(normal)
     return normal.magnitude != 0.0 and v > 0.0
-
+#Tar bort Z vektorn för att få en 2dimensionell vektor
 def make2d(vec):
     v = Vector((vec[0],vec[1], 0))
     return v
-
+#Slumpar fram tre olika positioner enligt symmetrikrav
 def newPositions():
     while True:
+        #Tre slumpade positioner
         while len(positions) < 3:
             newPos = randomVec()
+            #Kollar så att positionen ej är inom "art"
             if is_inside(art, newPos) == False:
                 positions.append(newPos)
+        #Sumerar positionernas vektorer och ger resultantens värde
         sum = (make2d(positions[0])+ make2d(positions[1])+make2d(positions[2])).magnitude
+        #om resultanten är större än 0.2 gör vi om hela prossecen
         if sum > 0.2:
             positions.clear()
+        #Om vi har bra symmetri skickar vi vidare positionerna för bruk    
         else:
             return positions
             print(sum)
             break
 
 positions = newPositions()
-print(positions)
 
-lights[0].location = positions[0]
-lights[1].location = positions[1]
-lights[2].location = positions[2]
+#Ger varje lampa en ny position
+i=0
+for j in lights:
+    j.location = positions[i]
+    i=i+1
